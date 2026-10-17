@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>YIy注入 - Native Mobile App Prototype</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="appContainer" class="dark-mode">
+    <!-- 动态流动光斑背景 -->
+    <div class="blob-bg">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <!-- 顶部 System Overlay 跨应用灵动岛 (默认隐藏，点击“注入”后显示) -->
+    <div id="dynamicIsland" class="dynamic-island-capsule" onclick="toggleIsland()" style="display: none;">
+      <div class="island-compact">
+        <span class="island-dot"></span>
+        <span id="islandText" class="island-title">YIy注入 悬浮岛</span>
+        <span class="island-sparkle">⚡</span>
+      </div>
+      <div id="islandExpandedContent" class="island-expanded" style="display: none;">
+        <p class="island-section-title">已注入脚本功能挂载 (Script Features):</p>
+        <div class="island-toggles-grid">
+          <label class="toggle-item" onclick="event.stopPropagation();">
+            <span>自动瞄准 (Aimbot)</span>
+            <input type="checkbox" checked onchange="toggleFeatureLog('自动瞄准', this.checked)" />
+          </label>
+          <label class="toggle-item" onclick="event.stopPropagation();">
+            <span>透视显示 (ESP)</span>
+            <input type="checkbox" checked onchange="toggleFeatureLog('透视显示', this.checked)" />
+          </label>
+          <label class="toggle-item" onclick="event.stopPropagation();">
+            <span>移动加速 (Speed)</span>
+            <input type="checkbox" onchange="toggleFeatureLog('移动加速', this.checked)" />
+          </label>
+          <label class="toggle-item" onclick="event.stopPropagation();">
+            <span>无视碰撞 (Noclip)</span>
+            <input type="checkbox" onchange="toggleFeatureLog('无视碰撞', this.checked)" />
+          </label>
+          <label class="toggle-item" onclick="event.stopPropagation();">
+            <span>无限跳跃 (Jump)</span>
+            <input type="checkbox" checked onchange="toggleFeatureLog('无限跳跃', this.checked)" />
+          </label>
+        </div>
+
+        <p class="island-section-title" style="margin-top:8px;">快捷调色盘:</p>
+        <div class="island-colors">
+          <button class="mini-color-btn" style="background:#00E5FF;" onclick="event.stopPropagation(); selectThemeColor('#00E5FF', '#0088FF', null);"></button>
+          <button class="mini-color-btn" style="background:#7C4DFF;" onclick="event.stopPropagation(); selectThemeColor('#7C4DFF', '#D500F9', null);"></button>
+          <button class="mini-color-btn" style="background:#10B981;" onclick="event.stopPropagation(); selectThemeColor('#10B981', '#059669', null);"></button>
+          <button class="mini-color-btn" style="background:#F59E0B;" onclick="event.stopPropagation(); selectThemeColor('#F59E0B', '#EF4444', null);"></button>
+          <button class="mini-color-btn" style="background:#F43F5E;" onclick="event.stopPropagation(); selectThemeColor('#F43F5E', '#E11D48', null);"></button>
+          <button class="mini-color-btn" style="background:#3B82F6;" onclick="event.stopPropagation(); selectThemeColor('#3B82F6', '#1D4ED8', null);"></button>
+          <button class="mini-color-btn" style="background:#F1F5F9;" onclick="event.stopPropagation(); selectThemeColor('#F1F5F9', '#38BDF8', null);"></button>
+        </div>
+        <div class="island-tag">✓ Android WindowManager Native Module 就绪</div>
+      </div>
+    </div>
+
+    <!-- 主屏幕内容展示区 -->
+    <main id="screenContainer">
+      <!-- 1. 首页 (Home Control Center) -->
+      <section id="screenHome" class="screen-view">
+        <header class="app-top-header">
+          <div class="app-branding">
+            <!-- 3D Liquid Glass Yiy Logo SVG -->
+            <div class="app-logo-svg">
+              <svg width="42" height="42" viewBox="0 0 64 64" fill="none">
+                <defs>
+                  <linearGradient id="gBody" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.8" />
+                    <stop offset="30%" stop-color="var(--theme-primary, #00E5FF)" stop-opacity="0.4" />
+                    <stop offset="70%" stop-color="#7C4DFF" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="#00E5FF" stop-opacity="0.6" />
+                  </linearGradient>
+                  <linearGradient id="gBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+                    <stop offset="40%" stop-color="rgba(255,255,255,0.4)" />
+                    <stop offset="80%" stop-color="var(--theme-primary, #00E5FF)" stop-opacity="0.8" />
+                    <stop offset="100%" stop-color="#7C4DFF" stop-opacity="0.9" />
+                  </linearGradient>
+                  <linearGradient id="gSheen" x1="50%" y1="0%" x2="50%" y2="100%">
+                    <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.75" />
+                    <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.0" />
+                  </linearGradient>
+                  <linearGradient id="gYiyText" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#FFFFFF" />
+                    <stop offset="40%" stop-color="var(--theme-primary, #00E5FF)" />
+                    <stop offset="100%" stop-color="#7C4DFF" />
+                  </linearGradient>
+                </defs>
+                <rect x="6" y="8" width="52" height="52" rx="18" fill="#000" fill-opacity="0.25"/>
+                <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#gBody)" stroke="url(#gBorder)" stroke-width="2"/>
+                <path d="M8 18C8 12.5 12.5 8 18 8H46C51.5 8 56 12.5 56 18C56 19.5 45 23 32 23C19 23 8 19.5 8 18Z" fill="url(#gSheen)"/>
+                <g>
+                  <path d="M14 20L22 32V44" stroke="url(#gYiyText)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M30 20L22 32" stroke="url(#gYiyText)" stroke-width="4.5" stroke-linecap="round"/>
+                  <path d="M15 20L21 29" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-opacity="0.9"/>
+                  <circle cx="36" cy="22" r="2.5" fill="#FFFFFF"/>
+                  <circle cx="36" cy="22" r="1.5" fill="var(--theme-primary, #00E5FF)"/>
+                  <path d="M36 28V43" stroke="url(#gYiyText)" stroke-width="4" stroke-linecap="round"/>
+                  <path d="M36 29V36" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.8"/>
+                  <path d="M42 28V38C42 42 39 45 35 45" stroke="url(#gYiyText)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M42 29V35" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-opacity="0.8"/>
+                </g>
+              </svg>
+            </div>
+            <div>
+              <h1 class="app-title-text">YIy注入</h1>
+              <span class="app-subtitle-text">Roblox 核心控制台</span>
+            </div>
+          </div>
+          <button class="icon-btn" onclick="openDrawer()" aria-label="打开侧边抽屉">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          </button>
+        </header>
+
+        <!-- 主控制面板大卡片 -->
+        <div class="glass-card glow-card main-control-panel">
+          <div class="panel-top-row">
+            <!-- Roblox Brand SVG Icon -->
+            <div class="roblox-game-icon-svg">
+              <svg width="40" height="40" viewBox="0 0 48 48" fill="none">
+                <rect x="1" y="1" width="46" height="46" rx="12" fill="#00A2FF" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"/>
+                <g transform="translate(24, 24) rotate(-14) translate(-24, -24)">
+                  <rect x="12" y="12" width="24" height="24" rx="3" fill="#FFFFFF"/>
+                  <rect x="20" y="20" width="8" height="8" rx="1.5" fill="#00A2FF"/>
+                </g>
+              </svg>
+            </div>
+            <div class="script-select-container">
+              <label class="select-label">选择脚本预设</label>
+              <select id="presetScriptSelect" class="script-dropdown" onchange="onScriptSelectChange(this.value)">
+                <option value="Roblox 通用越狱 & 飞行 v2.4">Roblox 通用越狱 & 飞行 v2.4</option>
+                <option value="Roblox 穿墙与极速挂载">Roblox 穿墙与极速挂载</option>
+                <option value="Auto Farm Hub - 自动刷怪">Auto Farm Hub - 自动刷怪</option>
+                <option value="透视 ESP & 无敌机制">透视 ESP & 无敌机制</option>
+                <option value="外部自定义输入脚本">外部自定义输入脚本</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="inject-action-row">
+            <button class="glass-btn inject-btn highlight-btn" onclick="triggerInjection()">
+              <span id="injectBtnText">⚡ 注入 (Inject)</span>
+            </button>
+          </div>
+
+          <!-- 三段状态指示: 注入状态 | 运行状态 | 运行时间 00:00:00 -->
+          <div class="panel-status-footer">
+            <span id="injectStatusText">注入状态: 未注入</span>
+            <span class="status-divider">|</span>
+            <span id="runStatusText">运行状态: 未运行</span>
+            <span class="status-divider">|</span>
+            <span id="timerStatusText">运行时间: 00:00:00</span>
+          </div>
+        </div>
+
+        <!-- 功能快捷入口 -->
+        <h2 class="section-title">核心驱动功能</h2>
+
+        <div class="glass-card" onclick="switchTab(1, null)">
+          <div class="card-header">
+            <div class="icon-circle"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+            <span class="badge-tag">EXTERNAL RUNNER</span>
+          </div>
+          <h3>外部脚本注入控制台</h3>
+          <p>支持粘贴自定义 Lua/JS 脚本文本，提供一键清空、复制、粘贴与实时控制台日志排错。</p>
+        </div>
+
+        <div class="glass-card" onclick="triggerInjection()">
+          <div class="card-header">
+            <div class="icon-circle green-glow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div>
+            <span class="badge-tag green-text">SYSTEM OVERLAY</span>
+          </div>
+          <h3>跨应用悬浮窗灵动岛</h3>
+          <p>基于 Android WindowManager Native 模块悬浮桌面，内置多重脚本功能快捷开关。</p>
+        </div>
+      </section>
+
+      <!-- 2. 注入 (Injection) -->
+      <section id="screenScriptRunner" class="screen-view" style="display: none;">
+        <h1 class="page-title">注入</h1>
+        <p class="page-sub">自定义 Lua / JS 脚本编写、一键挂载与控制台日志</p>
+
+        <!-- 脚本文本输入框 + 顶部“清空”按钮 -->
+        <div class="glass-card script-input-card">
+          <div class="script-input-header">
+            <span class="script-label-tag">Lua / JS 脚本文本编辑</span>
+            <button class="clear-script-btn" onclick="clearScriptText()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              清空
+            </button>
+          </div>
+          <textarea id="scriptTextInput" class="script-textarea" placeholder="在此输入或粘贴脚本文本..." rows="5">-- YIy注入 Roblox Lua 引擎
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+print("[YIy] 初始化神速与无敌挂载...")
+LocalPlayer.Character.Humanoid.WalkSpeed = 64
+LocalPlayer.Character.Humanoid.JumpPower = 120
+print("[YIy] 脚本注入成功，参数已生效！")</textarea>
+        </div>
+
+        <!-- 按钮行 -->
+        <div class="script-btn-row">
+          <button class="mini-action-btn" onclick="copyScriptText()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            复制
+          </button>
+          <button class="mini-action-btn" onclick="pasteScriptText()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            粘贴
+          </button>
+          <button class="mini-action-btn run-btn" onclick="runScriptText()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            运行
+          </button>
+        </div>
+
+        <!-- 日志显示卡片 -->
+        <div class="glass-card log-display-panel">
+          <div class="log-panel-header">
+            <span class="log-title-tag">日志 (Logs)</span>
+            <button class="log-clear-btn" onclick="clearLogs()">清空日志</button>
+          </div>
+          <div id="logTerminalArea" class="log-terminal">
+            <div class="log-line info">[12:00:01] YIy注入 系统初始化完成...</div>
+            <div class="log-line info">[12:00:02] SYSTEM_ALERT_WINDOW 权限检查通过</div>
+            <div class="log-line success">[12:00:03] 引擎 Hook 挂钩就绪，等待运行命令</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 设置 (Settings) -->
+      <section id="screenSettings" class="screen-view" style="display: none;">
+        <h1 class="page-title">外观与材质设置</h1>
+        <p class="page-sub">调节实时折射材质参数与 Android 原生灵动岛控制</p>
+
+        <div class="glass-card">
+          <h3>显示模式</h3>
+          <div class="mode-grid">
+            <button class="mode-btn active" onclick="setMode('dark', this)">深色模式</button>
+            <button class="mode-btn" onclick="setMode('light', this)">浅色模式</button>
+            <button class="mode-btn" onclick="setMode('system', this)">跟随系统</button>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3>全局主题配色 (7 Preset)</h3>
+          <div class="color-picker-grid">
+            <div class="color-tile active" onclick="selectThemeColor('#00E5FF', '#0088FF', this)">
+              <span class="dot" style="background:#00E5FF"></span> 极光青
+            </div>
+            <div class="color-tile" onclick="selectThemeColor('#7C4DFF', '#D500F9', this)">
+              <span class="dot" style="background:#7C4DFF"></span> 幻彩紫
+            </div>
+            <div class="color-tile" onclick="selectThemeColor('#10B981', '#059669', this)">
+              <span class="dot" style="background:#10B981"></span> 翡翠绿
+            </div>
+            <div class="color-tile" onclick="selectThemeColor('#F59E0B', '#EF4444', this)">
+              <span class="dot" style="background:#F59E0B"></span> 琥珀金
+            </div>
+            <div class="color-tile" onclick="selectThemeColor('#F43F5E', '#E11D48', this)">
+              <span class="dot" style="background:#F43F5E"></span> 玫瑰红
+            </div>
+            <div class="color-tile" onclick="selectThemeColor('#3B82F6', '#1D4ED8', this)">
+              <span class="dot" style="background:#3B82F6"></span> 冰川蓝
+            </div>
+            <div class="color-tile" onclick="selectThemeColor('#F1F5F9', '#38BDF8', this)">
+              <span class="dot" style="background:#F1F5F9"></span> 晶冷白
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3>光学材质调校</h3>
+          <div class="slider-box">
+            <div class="slider-label">
+              <span>高斯模糊强度 (Blur Intensity)</span>
+              <span id="blurVal">92px</span>
+            </div>
+            <input type="range" min="10" max="100" value="92" oninput="updateBlur(this.value)" />
+          </div>
+
+          <div class="slider-box" style="margin-top:14px;">
+            <div class="slider-label">
+              <span>折射高光透明度 (Refraction Highlight)</span>
+              <span id="refractionVal">88%</span>
+            </div>
+            <input type="range" min="10" max="100" value="88" oninput="updateRefraction(this.value)" />
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3>Android 原生悬浮灵动岛</h3>
+          <p>使用 TYPE_APPLICATION_OVERLAY 悬浮在桌面及其它 APP 上方：</p>
+          <button class="glass-btn highlight-btn" style="margin-top:12px;" onclick="toggleIsland()">
+            <span>切换系统灵动岛展开/收起</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- 4. 关于 (About) -->
+      <section id="screenAbout" class="screen-view" style="display: none;">
+        <div class="about-hero">
+          <div class="about-logo-svg">
+            <svg width="60" height="60" viewBox="0 0 64 64" fill="none">
+              <rect x="4" y="4" width="56" height="56" rx="18" fill="url(#gBody)" stroke="url(#gBorder)" stroke-width="2"/>
+              <path d="M8 18C8 12.5 12.5 8 18 8H46C51.5 8 56 12.5 56 18C56 19.5 45 23 32 23C19 23 8 19.5 8 18Z" fill="url(#gSheen)"/>
+              <g>
+                <path d="M14 20L22 32V44" stroke="url(#gYiyText)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M30 20L22 32" stroke="url(#gYiyText)" stroke-width="4.5" stroke-linecap="round"/>
+                <path d="M15 20L21 29" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-opacity="0.9"/>
+                <circle cx="36" cy="22" r="2.5" fill="#FFFFFF"/>
+                <path d="M36 28V43" stroke="url(#gYiyText)" stroke-width="4" stroke-linecap="round"/>
+                <path d="M42 28V38C42 42 39 45 35 45" stroke="url(#gYiyText)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              </g>
+            </svg>
+          </div>
+          <h1 class="hero-title">YIy注入</h1>
+          <div class="about-badge">版本 v2.6 Mobile Native Build</div>
+          <p class="hero-desc">原生跨平台液态玻璃架构移动应用原型</p>
+        </div>
+
+        <div class="glass-card">
+          <h3>架构技术栈</h3>
+          <ul class="spec-list">
+            <li><strong>应用名称:</strong> YIy注入</li>
+            <li><strong>iOS 26 玻璃美学:</strong> 极致透光、高斯模糊与多重物理阴影</li>
+            <li><strong>Reanimated v3:</strong> 120fps 弹簧物理与微缩放手感</li>
+            <li><strong>原生 Android 模块:</strong> TYPE_APPLICATION_OVERLAY 跨应用灵动岛</li>
+            <li><strong>异常容错:</strong> 内部 try-catch 保护，全平台防崩溃防白屏设计</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- 侧边 Edge Swipe 抽屉 -->
+    <div id="drawerOverlay" class="drawer-overlay" onclick="closeDrawer()"></div>
+    <aside id="glassDrawer" class="glass-drawer">
+      <div class="drawer-header">
+        <div class="drawer-brand">
+          <span class="drawer-logo">💧</span>
+          <div>
+            <h2>YIy注入</h2>
+            <p>移动端控制中心</p>
+          </div>
+        </div>
+        <button class="close-btn" onclick="closeDrawer()">✕</button>
+      </div>
+
+      <nav class="drawer-menu">
+        <a href="javascript:void(0)" onclick="switchTab(0, null); closeDrawer();">首页 (Home)</a>
+        <a href="javascript:void(0)" onclick="switchTab(1, null); closeDrawer();">注入 (Injection)</a>
+        <a href="javascript:void(0)" onclick="switchTab(2, null); closeDrawer();">外观设置 (Settings)</a>
+        <a href="javascript:void(0)" onclick="switchTab(3, null); closeDrawer();">关于项目 (About)</a>
+      </nav>
+
+      <div class="drawer-footer">
+        <button class="glass-btn" onclick="closeDrawer()" style="width:100%;">关闭侧滑抽屉</button>
+      </div>
+    </aside>
+
+    <!-- 底部悬浮 Capsule TabBar -->
+    <nav class="floating-tab-bar">
+      <div id="activeLens" class="water-drop-lens"></div>
+      <button class="tab-item active" onclick="switchTab(0, this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+        <span>首页</span>
+      </button>
+      <button class="tab-item" onclick="switchTab(1, this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <span>注入</span>
+      </button>
+      <button class="tab-item" onclick="switchTab(2, this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        <span>设置</span>
+      </button>
+      <button class="tab-item" onclick="switchTab(3, this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>关于</span>
+      </button>
+    </nav>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
